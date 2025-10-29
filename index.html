@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCARA Robot Control - Group 19</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <img src="assets/uj_logo.png" alt="UJ Logo"
+                onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%2260%22%3E%3Ctext x=%2210%22 y=%2240%22 font-family=%22Arial%22 font-size=%2230%22 fill=%22%23333%22%3EUJ Logo%3C/text%3E%3C/svg%3E'">
+        </div>
+        <div class="header-text">
+            <h1>SCARA Robot Control System</h1>
+            <p>Group 19 - Electrical Engineering Practical 3B</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alertBox" class="alert"></div>
+
+        <div class="control-grid">
+            <!-- System Status Panel -->
+            <div class="control-panel">
+                <h2>System Status</h2>
+                <div class="status-indicator">
+                    <div class="status-dot offline" id="statusDot"></div>
+                    <span id="statusText">System Offline</span>
+                </div>
+                <button class="btn btn-success" onclick="powerOn()">Power ON</button>
+                <button class="btn btn-danger" onclick="powerOff()">Power OFF</button>
+                <button class="btn btn-warning" onclick="homePosition()">Home Position</button>
+                <button class="emergency-stop" onclick="emergencyStop()">⚠ EMERGENCY STOP ⚠</button>
+            </div>
+
+            <!-- Position Control Panel -->
+            <div class="control-panel">
+                <h2>Position Control</h2>
+                <div class="position-display">
+                    <p>Base Rotation: <span id="xPos">90°</span></p>
+                    <p>Y-Axis Height: <span id="yPos">90</span></p>
+                    <p>Z-Axis Height: <span id="zPos">90</span></p>
+                </div>
+                <div class="coordinate-inputs">
+                    <div class="input-group">
+                        <label for="targetX">Base Angle (0-180°)</label>
+                        <input type="number" id="targetX" name="targetX" placeholder="90" min="0" max="180" value="90"
+                            title="Enter base angle between 0 and 180 degrees">
+                    </div>
+                    <div class="input-group">
+                        <label for="targetY">Y-Axis (Gripper Arm)</label>
+                        <input type="number" id="targetY" name="targetY" placeholder="90" min="0" max="180" value="90"
+                            title="Enter Y-axis position between 0 and 180">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="targetZ">Z-Axis (Body Height)</label>
+                    <input type="number" id="targetZ" name="targetZ" placeholder="90" min="0" max="180" value="90"
+                        title="Enter Z-axis position between 0 and 180">
+                </div>
+                <button class="btn btn-primary" onclick="moveToPosition()">Move to Position</button>
+            </div>
+
+            <!-- Manual Jog Control -->
+            <div class="control-panel">
+                <h2>Manual Jog Control</h2>
+                <label>Step Size:</label>
+                <div class="step-size">
+                    <button onclick="setStepSize(1)" id="step1">1°</button>
+                    <button onclick="setStepSize(5)" class="active" id="step5">5°</button>
+                    <button onclick="setStepSize(10)" id="step10">10°</button>
+                    <button onclick="setStepSize(20)" id="step20">20°</button>
+                </div>
+                <p class="jog-help-text">← → Base rotation (degrees) | ↑ ↓ Y-Axis arm (up/down)</p>
+                <div class="direction-pad">
+                    <button class="btn btn-secondary" onclick="jog('up')">↑ Up</button>
+                    <button class="btn btn-secondary" onclick="jog('left')">← Left</button>
+                    <button class="btn btn-secondary" onclick="jog('right')">Right →</button>
+                    <button class="btn btn-secondary" onclick="jog('down')">↓ Down</button>
+                </div>
+            </div>
+
+            <!-- Z-Axis & Gripper Control -->
+            <div class="control-panel">
+                <h2>Z-Axis & Gripper</h2>
+                <label>Body Movement (Z-Axis):</label>
+                <div class="z-axis-controls">
+                    <button class="btn btn-primary" onclick="jog('z_up')">▲ Body Up</button>
+                    <button class="btn btn-primary" onclick="jog('z_down')">▼ Body Down</button>
+                </div>
+                <label>Gripper Control:</label>
+                <div class="gripper-controls">
+                    <button class="btn btn-success" onclick="gripperOpen()">✋ Open</button>
+                    <button class="btn btn-success" onclick="gripperClose()">✊ Close</button>
+                </div>
+                <div class="input-group gripper-force-group">
+                    <label for="gripperForce">Gripper Force (0-100%)</label>
+                    <input type="range" id="gripperForce" name="gripperForce" min="0" max="100" value="50"
+                        onchange="updateGripperForce(this.value)" title="Adjust gripper force from 0 to 100 percent">
+                    <span class="range-value" id="forceValue">50%</span>
+                </div>
+            </div>
+
+            <!-- Automated Operations -->
+            <div class="control-panel">
+                <h2>Automated Operations</h2>
+                <button class="btn btn-primary" onclick="pickAndPlace()">🤖 Pick & Place Cycle</button>
+                <button class="btn btn-primary" onclick="calibrate()">⚙️ Calibrate System</button>
+                <button class="btn btn-secondary" onclick="testSequence()">🔄 Test Sequence</button>
+                <button class="btn btn-warning" onclick="resetPosition()">↺ Reset All Axes</button>
+                <div class="input-group speed-control-group">
+                    <label for="speedControl">Speed Control (%)</label>
+                    <input type="range" id="speedControl" name="speedControl" min="10" max="100" value="50"
+                        onchange="updateSpeed(this.value)" title="Adjust operation speed from 10 to 100 percent">
+                    <span class="range-value" id="speedValue">50%</span>
+                </div>
+            </div>
+
+            <!-- Quick Positions -->
+            <div class="control-panel">
+                <h2>Quick Positions</h2>
+                <button class="btn btn-secondary" onclick="goToPosition(45, 90, 90)">Left Position</button>
+                <button class="btn btn-secondary" onclick="goToPosition(135, 90, 90)">Right Position</button>
+                <button class="btn btn-secondary" onclick="goToPosition(90, 60, 120)">High Position</button>
+                <button class="btn btn-secondary" onclick="goToPosition(90, 120, 60)">Low Position</button>
+                <button class="btn btn-warning" onclick="saveCurrentPosition()">💾 Save Current</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="team-info">
+                <div class="team-member">
+                    <h4>SHABALALA MN</h4>
+                    <p>219024007</p>
+                    <p>Role: Software Engineer</p>
+                </div>
+                <div class="team-member">
+                    <h4>TAU LL</h4>
+                    <p>222070728</p>
+                    <p>Role: Hardware Engineer</p>
+                </div>
+                <div class="team-member">
+                    <h4>MAGWELE MA</h4>
+                    <p>223052359</p>
+                    <p>Role: Circuit Designer</p>
+                </div>
+                <div class="team-member">
+                    <h4>SITHOLE R</h4>
+                    <p>221028942</p>
+                    <p>Role: System Integration</p>
+                </div>
+            </div>
+            <div class="footer-details">
+                <p><strong>Group 19 | Electrical Engineering Practical Mini-Project</strong></p>
+                <p>Course: BEng Electrical and Electronic Engineering</p>
+                <p>Submission Date: 30 October 2025</p>
+                <p>University of Johannesburg | Faculty of Engineering and the Built Environment</p>
+                <p class="copyright">© 2025 Group 19. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
