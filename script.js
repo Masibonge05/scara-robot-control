@@ -1,5 +1,5 @@
 // ===== CHANGE THIS TO YOUR ESP32'S IP ADDRESS =====
-const ESP32_IP = "10.0.0.133"; // YOUR IP HERE
+const ESP32_IP = "10.0.0.136"; // YOUR IP HERE
 // ==================================================
 
 const API_URL = `http://${ESP32_IP}/api`;
