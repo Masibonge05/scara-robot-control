@@ -85,7 +85,6 @@ function setStepSize(size) {
   document.getElementById("step" + size).classList.add("active");
 }
 
-
 function jog(direction) {
   apiCall("/jog", "POST", { direction: direction });
 }
